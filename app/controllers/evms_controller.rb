@@ -13,6 +13,9 @@ class EvmsController < ApplicationController
   # View of EVM
   #
   def index
+    @group = Group.sorted
+    @no_use_group = params[:no_use_group] == nil ? 'false' : 'true'
+    @evmgroup_id = params[:evmgroup_id]
     # plugin setting
     @working_hours = default_setting('working_hours_of_day', 7.5).to_f
     @limit_spi = default_setting('limit_spi', 0.9).to_f
@@ -34,10 +37,19 @@ class EvmsController < ApplicationController
     @display_incomplete = params[:display_incomplete]
     # Project. all versions
     baselines = project_baseline @project, @baseline_id
-    issues = project_issues @project
-    actual_cost = project_costs @project
+    issues = nil
+    actual_cost = nil
     # incomplete issues
-    @incomplete_issues = incomplete_project_issues @project, @basis_date
+    @incomplete_issues = nil
+    if @no_use_group == 'false' && @evmgroup_id != nil
+      issues = project_issues_by_group @project, @evmgroup_id
+      actual_cost = project_costs_by_group @project, @evmgroup_id
+      @incomplete_issues = incomplete_project_issues_by_group @project, @basis_date, @evmgroup_id
+    else
+      issues = project_issues @project
+      actual_cost = project_costs @project
+      @incomplete_issues = incomplete_project_issues @project, @basis_date
+    end
     # EVM of project
     @project_evm = IssueEvm.new baselines,
                                 issues,
@@ -122,4 +134,5 @@ class EvmsController < ApplicationController
   def find_evmbaselines
     Evmbaseline.where('project_id = ? ', @project.id).order('created_on DESC')
   end
+
 end

@@ -25,3 +25,9 @@
   <p><%= l(:label_Display) %></p>
   <%= check_box_tag :display_explanation, "true", display_explanation %><%= label_tag l(:label_display_explanation) %>
 </div>
+<div class="option-col">
+  <p><%= l(:label_groups) %></p>
+  <%= check_box_tag :no_use_group,"true", @no_use_group, onclick: "disableobject('evmgroup_id', this.checked);"%>
+  <%= label_tag l(:label_no_use_baseline) %>
+  <%= select_tag :evmgroup_id, options_from_collection_for_select(@group, :id, :lastname), disabled:@no_use_group %>
+</div>

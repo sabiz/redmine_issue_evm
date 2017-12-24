@@ -47,6 +47,7 @@ en:
   label_ativity_message_new: Baseline is created.
   label_ativity_message_edit: Baseline is updated.
   label_evm_print: Print
+  label_groups: Group
   # Explanation title
   explanation_basis: Basis
   explanation_difference: Difference

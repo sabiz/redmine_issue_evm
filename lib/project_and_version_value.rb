@@ -107,4 +107,46 @@ module ProjectAndVersionValue
       .references(:fixed_version)
       .where("#{SQL_COM}", basis_date)
   end
+
+  # Get Issues of project.
+  # Include descendants project.require inputted start date and due date.
+  #
+  # @note If the due date has not been entered, we will use the due date of the version
+  # @param [Object] proj project
+  # @return [Issue] issue object
+  def project_issues_by_group(proj,group_id)
+    Issue.cross_project_scope(proj, 'descendants')
+      .includes(:fixed_version).where("#{SQL_COM_FILTER}")
+      .references(:fixed_version)
+      .where("#{SQL_COM}")
+      .where(author: Group.find(group_id).users)
+  end
+  # Get spent time of project.
+  # Include descendants project.require inputted start date and due date.
+  #
+  # @param [Object] proj project
+  # @return [Array] Two column,spent_on,sum of hours
+  def project_costs_by_group(proj, group_id)
+    Issue.cross_project_scope(proj, 'descendants')
+      .select('spent_on, SUM(hours) AS sum_hours')
+      .where("#{SQL_COM}")
+      .where(author: Group.find(group_id).users)
+      .joins(:time_entries)
+      .group(:spent_on)
+      .collect { |issue| [issue.spent_on.to_date, issue.sum_hours] }
+  end
+
+  # Get imcomplete issuees on basis date.
+  #
+  # @note If the due date has not been entered, we will use the due date of the version
+  # @param [Numeric] proj project id
+  # @param [date] basis_date basis date
+  # @return [Issue] issue object
+  def incomplete_project_issues_by_group(proj, basis_date, group_id)
+    Issue.cross_project_scope(proj, 'descendants')
+      .includes(:fixed_version).where("#{SQL_COM_FILTER} AND start_date <= ? AND (closed_on IS NULL OR closed_on > ?)", basis_date, basis_date.end_of_day)
+      .references(:fixed_version)
+      .where("#{SQL_COM}", basis_date)
+      .where(author: Group.find(group_id).users)
+  end
 end
